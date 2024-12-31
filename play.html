@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>設施介紹</title>
+
+  <style>
+    /* 加入導航欄的 CSS 代碼 */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #3399FF;
+      padding: 10px 20px;
+      color: white;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 98%;
+      z-index: 100;
+    }
+
+    .navbar .logo {
+      font-size: 24px;
+      font-family: 'Quicksand', sans-serif;
+      text-decoration: none;
+      color: white;
+      display: flex;
+      align-items: center;
+    }
+
+    .navbar .logo img {
+      margin-right: 10px;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .user-icon {
+      font-size: 24px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: #ffffff;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+      border-radius: 4px;
+    }
+
+    .dropdown-content a {
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #ddd;
+    }
+
+    .user-menu:hover .dropdown-content {
+      display: block;
+    }
+
+    .dropdown-content a:last-child {
+      border-bottom: none;
+    }
+
+    /* 主要內容樣式 */
+    .container {
+      margin-top: 80px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 36px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .facility-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .facility {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      width: 300px;
+      text-align: center;
+    }
+
+    .facility img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .facility h2 {
+      font-size: 20px;
+      color: #555;
+      margin: 10px 0;
+    }
+
+    .facility p {
+      font-size: 16px;
+      color: #777;
+      margin: 0 10px 10px;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <!-- 導航欄 -->
+  <div class="navbar">
+    <a href="main.html" class="logo">
+      <img src="photo/國立虎尾科技大學.webp" alt="Logo" height="40">
+      虎科大遊樂園
+    </a>
+    <div class="user-menu">
+      <div class="user-icon">👤</div>
+      <div class="dropdown">
+        <div class="dropdown-content">
+          <a href="map.html">地圖資訊</a>
+          <a href="play.html">設施介紹</a>
+          <a href="check_balance.html">查詢餘額</a>
+          <a href="recharge.html">儲值</a>
+          <a href="transaction.html">交易紀錄</a>
+          <a href="in out.html">進出場紀錄</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 設施介紹內容 -->
+  <div class="container">
+    <h1>設施介紹</h1>
+    <div class="facility-grid">
+      <!-- 設施卡片 -->
+      <div class="facility">
+        <img src="photo/雲霄飛車.webp" alt="雲霄飛車">
+        <h2>雲霄飛車</h2>
+        <p>感受速度與刺激，挑戰你的極限！</p>
+      </div>
+      <div class="facility">
+        <img src="photo/摩天輪.webp" alt="摩天輪">
+        <h2>摩天輪</h2>
+        <p>享受浪漫的高空景色，適合拍照打卡。</p>
+      </div>
+      <div class="facility">
+        <img src="photo/鬼屋.webp" alt="鬼屋探險">
+        <h2>鬼屋探險</h2>
+        <p>勇敢挑戰驚悚的冒險，感受刺激的氛圍。</p>
+      </div>
+      <div class="facility">
+        <img src="photo/旋轉木馬.webp" alt="旋轉木馬">
+        <h2>旋轉木馬</h2>
+        <p>經典遊樂設施，適合家庭與兒童。</p>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>

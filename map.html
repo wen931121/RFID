@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>地圖資訊</title>
+
+  <!-- 引入 Leaflet CSS 和 JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <style>
+    /* 加入導航欄的 CSS 代碼 */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #3399FF;
+      padding: 10px 20px;
+      color: white;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 98%;
+      z-index: 1000; /* 確保導航欄位於最上層 */
+    }
+
+    .navbar .logo {
+      font-size: 24px;
+      font-family: 'Quicksand', sans-serif;
+      text-decoration: none;
+      color: white;
+      display: flex;
+      align-items: center;
+    }
+
+    .navbar .logo img {
+      margin-right: 10px;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .user-icon {
+      font-size: 24px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: #ffffff;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+      z-index: 1050; /* 確保下拉選單位於地圖之上 */
+      border-radius: 4px;
+    }
+
+    .dropdown-content a {
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #ddd;
+    }
+
+    .user-menu:hover .dropdown-content {
+      display: block;
+    }
+
+    .dropdown-content a:last-child {
+      border-bottom: none;
+    }
+
+    /* 顯示標題 */
+    .map-title {
+      position: absolute;
+      top: 70px; /* 距離導航欄下方的距離 */
+      left: 20px; /* 距離左邊邊緣的距離 */
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      z-index: 101; /* 確保標題在地圖上層 */
+    }
+
+    /* 調整地圖容器的大小 */
+    #map {
+      height: 80vh; /* 設定為視口高度的80%，讓地圖顯示更大 */
+      width: 100%;
+      margin-top: 100px; /* 增加上方距離 */
+      z-index: 1; /* 確保地圖層級較低 */
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <!-- 將導航欄 HTML 放入這裡 -->
+  <div class="navbar">
+    <a href="main.html" class="logo">
+      <img src="photo/國立虎尾科技大學.webp" alt="Logo" height="40">
+      虎科大遊樂園
+    </a>
+    <div class="user-menu">
+      <div class="user-icon">👤</div>
+      <div class="dropdown">
+        <div class="dropdown-content">
+          <a href="map.html">地圖資訊</a>
+          <a href="play.html">設施介紹</a>
+          <a href="check_balance.html">查詢餘額</a>
+          <a href="recharge.html">儲值</a>
+          <a href="transaction.html">交易紀錄</a>
+          <a href="in out.html">進出場紀錄</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 地圖標題 -->
+  <div class="map-title">虎科大遊樂園地圖</div>
+
+  <!-- 地圖顯示區 -->
+  <div id="map"></div>
+
+  <script>
+    // 使用提供的經緯度更新地圖，並設置為虎尾科技大學的位置
+    var map = L.map('map').setView([23.701944, 120.431111], 15);  
+
+    // 設定 OpenStreetMap 的地圖層
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // 在虎尾科技大學位置添加標記並顯示訊息
+    L.marker([23.701944, 120.431111]).addTo(map)
+      .bindPopup("<b>虎尾科技大學</b><br>位於台灣雲林縣虎尾鎮")
+      .openPopup();
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>查詢餘額</title>
+
+  <!-- 引入 Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDrooGqVS1bn2NdAGdajKxPdN6yfI0i_QA",
+      authDomain: "rfid-f2d97.firebaseapp.com",
+      databaseURL: "https://rfid-f2d97-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "rfid-f2d97",
+      storageBucket: "rfid-f2d97.appspot.com",
+      messagingSenderId: "992662042703",
+      appId: "1:992662042703:web:004ff91965e3fb3982523a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.checkBalance = function() {
+      const rfid = document.getElementById('rfidInput').value.trim();
+      const resultDisplay = document.getElementById('result');
+      const rechargeButton = document.getElementById('rechargeButton');
+
+      resultDisplay.innerHTML = "";
+      rechargeButton.style.display = "none"; // 隱藏儲值按鈕
+
+      if (!rfid) {
+        alert("Please enter RFID！");
+        return;
+      }
+
+      const rfidRef = ref(db, 'entries/' + rfid);
+
+      get(rfidRef).then((snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const balance = data.balance !== undefined ? data.balance : 0;
+          resultDisplay.innerHTML = `<p>RFID: ${rfid}<br>Balance: ${balance} NTD</p>`;
+
+          // 顯示儲值按鈕
+          rechargeButton.style.display = "inline-block";
+        } else {
+          resultDisplay.innerHTML = "<p style='color: red;'>No such RFID found！</p>";
+        }
+      }).catch((error) => {
+        console.error("Query Failed：", error);
+        alert("Query Failed, Please Try Again Later！");
+        resultDisplay.innerHTML = "<p style='color: red;'>Query Failed, Please Try Again Later！</p>";
+      });
+    };
+  </script>
+
+  <script>
+    let timeout = null;
+
+    function handleRFIDInput() {
+      clearTimeout(timeout); // 清除之前的延遲執行
+      timeout = setTimeout(() => {
+        const rfid = document.getElementById('rfidInput').value.trim();
+        if (rfid) {
+          checkBalance(); // 當輸入完成後自動查詢
+        }
+      }, 300); // 延遲 300ms 確保輸入完成
+    }
+
+    // 在頁面加載時讓輸入框自動獲得焦點
+    window.onload = function () {
+      const rfidInput = document.getElementById('rfidInput');
+      rfidInput.focus();
+    };
+  </script>
+
+  <style>
+    /* 頁面背景色 */
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    /* 頂部導航欄 */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #3399FF;
+      padding: 10px 20px;
+      color: white;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 98%;
+      z-index: 100;
+    }
+
+    .navbar .logo {
+      font-size: 24px;
+      font-family: 'Quicksand', sans-serif;
+      text-decoration: none;
+      color: white;
+      display: flex;
+      align-items: center;
+    }
+
+    .navbar .logo img {
+      margin-right: 10px;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .user-icon {
+      font-size: 24px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: #ffffff;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+      border-radius: 4px;
+    }
+
+    .dropdown-content a {
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #ddd;
+    }
+
+    .user-menu:hover .dropdown-content {
+      display: block;
+    }
+
+    .dropdown-content a:last-child {
+      border-bottom: none;
+    }
+
+    /* 中心顯示內容 */
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+      margin-top: 80px;
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #333;
+    }
+
+    input[type="text"] {
+      width: calc(100% - 20px);
+      padding: 10px;
+      margin: 20px 0;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: white;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 16px;
+    }
+
+    #rechargeButton {
+      display: none; /* 預設隱藏儲值按鈕 */
+    }
+  </style>
+</head>
+<body>
+  <!-- 頂部導航欄 -->
+  <div class="navbar">
+    <a href="main_e.html" class="logo">
+      <img src="photo/國立虎尾科技大學.webp" alt="Logo" height="40">
+      NFU Amusement Park
+    </a>
+    <div class="user-menu">
+      <div class="user-icon">👤</div>
+      <div class="dropdown">
+        <div class="dropdown-content">
+            <a href="map_e.html">Map Information</a>
+            <a href="play_e.html">Facility Introduction</a>
+            <a href="check_balance_e.html">Check Balance</a>
+            <a href="recharge_e.html">Top Up</a>
+            <a href="transaction_e.html">Transaction History</a>
+            <a href="in out_e.html">Entry and Exit Records</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 查詢餘額內容 -->
+  <div class="container">
+    <h1>Check Balance</h1>
+    <input type="text" id="rfidInput" placeholder="Enter or swipe card..." oninput="handleRFIDInput()">
+    <button onclick="checkBalance()">Query</button>
+    <div id="result"></div>
+    <!-- 儲值按鈕 -->
+    <button id="rechargeButton" onclick="window.location.href='recharge_e.html'">Go to top-up</button>
+  </div>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>交易紀錄</title>
+
+  <!-- 引入 Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDrooGqVS1bn2NdAGdajKxPdN6yfI0i_QA",
+      authDomain: "rfid-f2d97.firebaseapp.com",
+      databaseURL: "https://rfid-f2d97-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "rfid-f2d97",
+      storageBucket: "rfid-f2d97.appspot.com",
+      messagingSenderId: "992662042703",
+      appId: "1:992662042703:web:004ff91965e3fb3982523a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.getTransactionHistory = function () {
+      const rfid = document.getElementById('rfidInput').value.trim();
+      const resultDisplay = document.getElementById('result');
+      resultDisplay.innerHTML = "";
+
+      if (!rfid) {
+        alert("Please enter RFID！");
+        return;
+      }
+
+      const rfidRef = ref(db, 'entries/' + rfid);
+
+      get(rfidRef).then((snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          console.log('Firebase data:', data);
+
+          // 顯示當前餘額
+          const currentBalance = data.balance !== undefined ? data.balance : 0;
+          let htmlContent = `<h3>Current balance: ${currentBalance} NTD</h3>`;
+
+          // 確保有歷史紀錄，並轉換為陣列
+          const rechargeHistory = data.recharge_history ? Object.values(data.recharge_history) : [];
+          const consumeHistory = data.consume_history ? Object.values(data.consume_history) : [];
+
+          // 日期格式化函數
+          const formatDate = (isoDate) => {
+            const date = new Date(isoDate);
+            return date.toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
+          };
+
+          // 儲值紀錄
+          htmlContent += "<h3>Top-up record:</h3><ul>";
+          if (rechargeHistory.length > 0) {
+            rechargeHistory.forEach((entry) => {
+              htmlContent += `<li>Date: ${formatDate(entry.date)} | Amount: ${entry.amount}</li>`;
+            });
+          } else {
+            htmlContent += "<li>No top-up record</li>";
+          }
+          htmlContent += "</ul>";
+
+          // 消費紀錄
+          htmlContent += "<h3>Purchase record:</h3><ul>";
+          if (consumeHistory.length > 0) {
+            consumeHistory.forEach((entry) => {
+              htmlContent += `<li>Date: ${formatDate(entry.date)} | Amount: ${entry.amount}</li>`;
+            });
+          } else {
+            htmlContent += "<li>No purchase record</li>";
+          }
+          htmlContent += "</ul>";
+
+          // 計算儲值和消費的總金額
+          const totalRecharge = rechargeHistory.reduce((sum, entry) => sum + entry.amount, 0);
+          const totalConsume = consumeHistory.reduce((sum, entry) => sum + entry.amount, 0);
+
+          // 畫圓餅圖
+          htmlContent += `<h3>Money usage status:</h3><canvas id="usageChart" width="400" height="400"></canvas>`;
+
+          resultDisplay.innerHTML = htmlContent;
+
+          const ctx = document.getElementById('usageChart').getContext('2d');
+          const usageChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+              labels: ['top-up', 'purchase'],
+              datasets: [{
+                data: [totalRecharge, totalConsume],
+                backgroundColor: ['#4CAF50', '#FF6347'],
+                hoverBackgroundColor: ['#45a049', '#ff5733']
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  position: 'top',
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function(tooltipItem) {
+                      return tooltipItem.label + ': ' + tooltipItem.raw + ' NTD';
+                    }
+                  }
+                }
+              }
+            }
+          });
+
+        } else {
+          alert("RFID not found！");
+          resultDisplay.innerHTML = "<p style='color: red;'>RFID not found！</p>";
+        }
+      }).catch((error) => {
+        console.error("Query failed：", error);
+        alert("An error occurred, please try again later！");
+        resultDisplay.innerHTML = "<p style='color: red;'>An error occurred, please try again later！</p>";
+      });
+    };
+  </script>
+
+  <!-- 引入 Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* 頁面背景色 */
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    /* 上方導航欄 */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #3399FF;
+      padding: 10px 20px;
+      color: white;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 98%;
+      z-index: 100;
+    }
+
+    .navbar .logo {
+      font-size: 24px;
+      font-family: 'Quicksand', sans-serif;
+      text-decoration: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      /* 保證 logo 和文字垂直居中 */
+    }
+
+    .navbar .logo img {
+      margin-right: 10px;
+      /* 設置圖片和文字之間的間距 */
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .user-icon {
+      font-size: 24px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    .dropdown {
+      position: relative;
+    }
+
+    /* 下拉選單內容隱藏初始 */
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: #ffffff;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+      border-radius: 4px;
+    }
+
+    .dropdown-content a {
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #ddd;
+    }
+
+    .user-menu:hover .dropdown-content {
+      display: block;
+      /* 當滑鼠懸停時顯示下拉菜單 */
+    }
+
+    .dropdown-content a:last-child {
+      border-bottom: none;
+    }
+
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+      margin-top: 80px;
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #333;
+    }
+
+    input[type="text"] {
+      width: calc(100% - 20px);
+      padding: 10px;
+      margin: 20px 0;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: white;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 16px;
+    }
+
+    /* 將列表的文字靠左對齊 */
+    ul {
+      text-align: left;
+      padding-left: 20px;
+    }
+
+    ul li {
+      margin-bottom: 5px;
+      line-height: 1.6;
+    }
+  </style>
+
+</head>
+
+<body>
+  <!-- 頂部導航欄 -->
+  <div class="navbar">
+    <a href="main_e.html" class="logo">
+      <img src="photo/國立虎尾科技大學.webp" alt="Logo" height="40">
+      NFU Amusement Park
+    </a>
+    <div class="user-menu">
+      <div class="user-icon">👤</div>
+      <div class="dropdown">
+        <div class="dropdown-content">
+            <a href="map_e.html">Map Information</a>
+            <a href="play_e.html">Facility Introduction</a>
+            <a href="check_balance_e.html">Check Balance</a>
+            <a href="recharge_e.html">Top Up</a>
+            <a href="transaction_e.html">Transaction History</a>
+            <a href="in out_e.html">Entry and Exit Records</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 交易紀錄內容 -->
+  <div class="container">
+    <h1>Transaction record</h1>
+    <input type="text" id="rfidInput" placeholder="Enter RFID">
+    <button onclick="getTransactionHistory()">Query record</button>
+    <div id="result"></div>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>虎科大遊樂園 RFID 進場</title>
+  
+  <!-- 引入 Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDrooGqVS1bn2NdAGdajKxPdN6yfI0i_QA",
+      authDomain: "rfid-f2d97.firebaseapp.com",
+      databaseURL: "https://rfid-f2d97-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "rfid-f2d97",
+      storageBucket: "rfid-f2d97.appspot.com",
+      messagingSenderId: "992662042703",
+      appId: "1:992662042703:web:004ff91965e3fb3982523a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    async function handleRFIDInput(rfid) {
+      const rfidRef = ref(db, 'entries/' + rfid);
+
+      try {
+        // 檢查是否已有 RFID 紀錄
+        const snapshot = await get(rfidRef);
+        const existingData = snapshot.val();
+
+        if (existingData) {
+          // 如果有紀錄，新增進場時間到 entry_history
+          const entryHistoryRef = ref(db, 'entries/' + rfid + '/entry_history');
+          const entryHistory = existingData.entry_history || {};
+          const nextEntryIndex = Object.keys(entryHistory).length;
+
+          const newEntry = {
+            [`${nextEntryIndex}`]: new Date().toISOString(),
+          };
+
+          await update(entryHistoryRef, newEntry);
+
+          Swal.fire({
+            title: "進場成功！",
+            icon: "success",
+            confirmButtonText: "確定"
+          });
+        } else {
+          // 無紀錄時新增整個進場紀錄
+          const newData = {
+            rfid: rfid,
+            entry_history: {
+              "0": new Date().toISOString(),
+            },
+            tempLeaveAt: {}
+          };
+
+          await set(rfidRef, newData);
+
+          Swal.fire({
+            title: "進場成功！",
+            text: "開始你的奇幻冒險吧!!。",
+            icon: "success",
+            confirmButtonText: "確定"
+          });
+        }
+
+        // 進入主頁並帶參數
+        setTimeout(() => {
+          window.location.href = "main.html?rfid=" + rfid;
+        }, 1500);
+
+      } catch (error) {
+        Swal.fire({
+          title: "錯誤",
+          text: "處理 RFID 時發生錯誤：" + error.message,
+          icon: "error",
+          confirmButtonText: "關閉"
+        });
+      }
+    }
+
+    window.checkRFID = function() {
+      const rfid = document.getElementById('rfidInput').value;
+
+      if (rfid) {
+        handleRFIDInput(rfid);
+      } else {
+        Swal.fire({
+          title: "警告",
+          text: "請輸入 RFID！",
+          icon: "warning",
+          confirmButtonText: "確定"
+        });
+      }
+    };
+  </script>
+
+  <!-- 引入 SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Quicksand:wght@500&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #f0f4f8;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    h1 {
+      font-family: 'Quicksand', sans-serif;
+      color: #3399FF;
+      margin-bottom: 20px;
+      font-size: 32px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 15px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      border-color: #3399FF;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      background-color: #3399FF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0080FF
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>歡迎來到遊樂園！</h1>
+    <p>請輸入你的 RFID 進行進場：</p>
+    <input type="text" id="rfidInput" placeholder="輸入 RFID" />
+    <button onclick="checkRFID()">進場</button>
+  </div>
+</body>
+</html>

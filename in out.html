@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>查詢進場與暫離紀錄</title>
+
+  <!-- 引入 Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDrooGqVS1bn2NdAGdajKxPdN6yfI0i_QA",
+      authDomain: "rfid-f2d97.firebaseapp.com",
+      databaseURL: "https://rfid-f2d97-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "rfid-f2d97",
+      storageBucket: "rfid-f2d97.appspot.com",
+      messagingSenderId: "992662042703",
+      appId: "1:992662042703:web:004ff91965e3fb3982523a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.checkRecords = function () {
+      const rfid = document.getElementById('rfidInput').value.trim();
+      const resultDisplay = document.getElementById('result');
+      const recordsList = document.getElementById('recordsList');
+
+      resultDisplay.innerHTML = "";
+      recordsList.innerHTML = "";
+
+      if (!rfid) {
+        alert("請輸入 RFID！");
+        return;
+      }
+
+      const rfidRef = ref(db, 'entries/' + rfid);
+
+      get(rfidRef).then((snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const entryHistory = data.entry_history || {}; // 確保 entry_history 存在
+          const tempLeaveAt = data.tempLeaveAt || {};   // 確保 tempLeaveAt 存在
+          displayRecords(entryHistory, tempLeaveAt);
+        } else {
+          resultDisplay.innerHTML = "<p style='color: red;'>查無此 RFID！</p>";
+        }
+      }).catch((error) => {
+        console.error("查詢失敗：", error);
+        alert("查詢失敗，請稍後再試！");
+        resultDisplay.innerHTML = "<p style='color: red;'>查詢失敗，請稍後再試！</p>";
+      });
+    };
+
+    function displayRecords(entryHistory, tempLeaveAt) {
+      const recordsList = document.getElementById('recordsList');
+      let records = [];
+
+      // 只在資料存在時推送進場紀錄
+      if (Object.keys(entryHistory).length > 0) {
+        for (const [index, time] of Object.entries(entryHistory)) {
+          records.push({ type: '進場', time: time });
+        }
+      }
+
+      // 只在資料存在時推送暫離紀錄
+      if (Object.keys(tempLeaveAt).length > 0) {
+        for (const [index, time] of Object.entries(tempLeaveAt)) {
+          records.push({ type: '暫離', time: time });
+        }
+      }
+
+      // 如果沒有進場或暫離紀錄
+      if (records.length === 0) {
+        recordsList.innerHTML = "<li>沒有找到紀錄。</li>";
+      } else {
+        // 排序並顯示紀錄
+        records.sort((a, b) => new Date(a.time) - new Date(b.time));
+
+        records.forEach((record, index) => {
+          const li = document.createElement('li');
+          li.textContent = `${record.type}時間 ${index + 1}: ${new Date(record.time).toLocaleString()}`;
+          recordsList.appendChild(li);
+        });
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #3399FF;
+      padding: 10px 20px;
+      color: white;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 98%;
+      z-index: 100;
+    }
+
+    .navbar .logo {
+  font-size: 24px;
+  font-family: 'Quicksand', sans-serif;
+  text-decoration: none;
+  color: white;
+  display: flex;
+  align-items: center; /* 保證 logo 和文字垂直居中 */
+}
+
+.navbar .logo img {
+  margin-right: 10px; /* 設置圖片和文字之間的間距 */
+}
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .user-icon {
+      font-size: 24px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: #ffffff;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  border-radius: 4px;
+}
+
+.dropdown-content a {
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+}
+
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+.user-menu:hover .dropdown-content {
+  display: block; /* 當滑鼠懸停時顯示下拉菜單 */
+}
+
+
+    .dropdown-content a:last-child {
+      border-bottom: none;
+    }
+
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+      margin-top: 80px;
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #333;
+    }
+
+    input[type="text"] {
+      width: calc(100% - 20px);
+      padding: 10px;
+      margin: 20px 0;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: white;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 16px;
+    }
+
+    #recordsList {
+      list-style: none;
+      padding-left: 20px;
+      /* 調整內邊距以靠左對齊 */
+      margin-top: 20px;
+      font-size: 16px;
+      text-align: left;
+      /* 讓文字靠左對齊 */
+    }
+
+    #recordsList li {
+      margin-bottom: 5px;
+      line-height: 1.6;
+      /* 增加行高以增強可讀性 */
+    }
+
+    #rechargeButton {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 頂部導航欄 -->
+  <div class="navbar">
+    <a href="main.html" class="logo">
+      <img src="photo/國立虎尾科技大學.webp" alt="Logo" height="40">
+      虎科大遊樂園
+    </a>
+    <div class="user-menu">
+      <div class="user-icon">👤</div>
+      <div class="dropdown">
+        <div class="dropdown-content">
+          <a href="map.html">地圖資訊</a>
+          <a href="play.html">設施介紹</a>
+          <a href="check_balance.html">查詢餘額</a>
+          <a href="recharge.html">儲值</a>
+          <a href="transaction.html">交易紀錄</a>
+          <a href="in out.html">進出場紀錄</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 查詢紀錄內容 -->
+  <div class="container">
+    <h1>查詢進場與暫離紀錄</h1>
+    <input type="text" id="rfidInput" placeholder="輸入 RFID">
+    <button onclick="checkRecords()">查詢</button>
+    <div id="result"></div>
+    <ul id="recordsList"></ul>
+  </div>
+</body>
+
+</html>
